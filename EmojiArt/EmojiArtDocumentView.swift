@@ -9,10 +9,14 @@
 import SwiftUI
 
 struct EmojiArtDocumentView: View {
+    @Environment(\.undoManager) var undoManager
+    
+    @StateObject var paletteStore = PaletteStore(named: "Shared")
+    
     typealias Emoji = EmojiArt.Emoji
     @ObservedObject var document: EmojiArtDocument
     
-    private let paletteEmojiSize: CGFloat = 40
+    @ScaledMetric private var paletteEmojiSize: CGFloat = 40
     
     var body: some View {
         VStack(spacing: 0) {
@@ -23,6 +27,10 @@ struct EmojiArtDocumentView: View {
                 .scrollIndicators(.hidden)
             
         }
+        .toolbar {
+            UndoButton()
+        }
+        .environmentObject(paletteStore)
     }
     
     private var documentBody: some View {
@@ -139,10 +147,13 @@ struct EmojiArtDocumentView: View {
                 return true
             case .string(let emoji):
                 document.addEmoji(
-                    emoji, at: emojiPosition(
+                    emoji,
+                    at: emojiPosition(
                         at: location,
                         in: geometry
-                    ), size: paletteEmojiSize / zoom
+                    ),
+                    size: paletteEmojiSize / zoom,
+                    undoWith: undoManager
                 )
                 
             default:
